@@ -23,6 +23,7 @@ import {
 } from '@angular/core/rxjs-interop';
 import { CoursesServiceWithFetch } from '../services/courses-fetch.service';
 import { openEditCourseDialog } from '../edit-course-dialog/edit-course-dialog.function';
+import { LoadingService } from '../loading/loading.service';
 
 type Example = {
   value: number;
@@ -51,6 +52,7 @@ export class HomeComponent implements OnInit {
   });
 
   courseService = inject(CoursesService);
+  loadingService = inject(LoadingService);
   dialog = inject(MatDialog);
 
   constructor() {
