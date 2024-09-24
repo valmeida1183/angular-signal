@@ -31,6 +31,7 @@ export class EditCourseDialogComponent {
   courseService = inject(CoursesService);
 
   form = this.buildForm();
+  category = signal<CourseCategory>('BEGINNER');
 
   constructor() {
     // this.form.patchValue({
@@ -39,19 +40,26 @@ export class EditCourseDialogComponent {
     //   category: this.data?.course?.category,
     //   iconUrl: this.data?.course?.iconUrl,
     // });
+
+    this.category.set(this.data?.course?.category ?? 'BEGINNER');
+
+    //This is to see two way signal model in action
+    effect(() => {
+      console.log(`Course category bi-directional binding: `, this.category());
+    });
   }
 
   ngOnInit(): void {
     this.form.patchValue({
       title: this.data?.course?.title,
       longDescription: this.data?.course?.longDescription,
-      category: this.data?.course?.category,
       iconUrl: this.data?.course?.iconUrl,
     });
   }
 
   async onSave(): Promise<void> {
     const courseProps = this.form.value as Partial<Course>;
+    courseProps.category = this.category();
 
     if (this.data.mode === 'update') {
       await this.saveCourse(this.data?.course!.id, courseProps);
@@ -61,7 +69,7 @@ export class EditCourseDialogComponent {
   }
 
   onClose(): void {
-    this.dialogRef.close({ title: 'Hello World!' });
+    this.dialogRef.close();
   }
 
   private async saveCourse(
@@ -98,7 +106,6 @@ export class EditCourseDialogComponent {
     return this.formBuilder.group({
       title: [''],
       longDescription: [''],
-      category: [''],
       iconUrl: [''],
     });
   }

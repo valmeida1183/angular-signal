@@ -19,14 +19,18 @@ export class CoursesCardListComponent {
   dialog = inject(MatDialog);
 
   async onEditCourse(course: Course): Promise<void> {
-    const newCCourse = await openEditCourseDialog(this.dialog, {
+    const newCourse = await openEditCourseDialog(this.dialog, {
       mode: 'update',
       title: 'Update Existing Course',
       course,
     });
 
-    console.log(`Course Edited: `, newCCourse);
-    this.courseUpdated.emit(newCCourse);
+    if (!newCourse) {
+      return;
+    }
+
+    console.log(`Course Edited: `, newCourse);
+    this.courseUpdated.emit(newCourse);
   }
 
   onDeleteCourse(course: Course): void {
