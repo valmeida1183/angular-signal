@@ -1,11 +1,19 @@
 <div class="courses-panel">
   <h3>All Courses:</h3>
 
-  <button class="btn" (click)="onAddCourse()">Add Course</button>
+  <button
+    class="btn"
+    (click)="onAddCourse()"
+    matTooltip="Info about the action"
+    #addButton
+  >
+    Add Course
+  </button>
 
   <mat-tab-group>
     <mat-tab label="Beginners">
       <courses-card-list
+        #beginnersList
         [courses]="beginnerCourses()"
         (courseUpdated)="onCourseUpdated($event)"
         (courseDeleted)="onCourseDeleted($event)"

@@ -3,14 +3,17 @@ import {
   computed,
   effect,
   EffectRef,
+  ElementRef,
   inject,
   Injector,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { CoursesService } from '../services/courses.service';
 import { Course, sortCoursesBySeqNo } from '../models/course.model';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 import { CoursesCardListComponent } from '../courses-card-list/courses-card-list.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MessagesService } from '../messages/messages.service';
@@ -31,11 +34,15 @@ type Example = {
 @Component({
   selector: 'home',
   standalone: true,
-  imports: [MatTabGroup, MatTab, CoursesCardListComponent],
+  imports: [MatTabGroup, MatTab, CoursesCardListComponent, MatTooltipModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
+  courseService = inject(CoursesService);
+  messageService = inject(MessagesService);
+  dialog = inject(MatDialog);
+
   #courses = signal<Course[]>([]);
 
   beginnerCourses = computed(() => {
@@ -50,15 +57,22 @@ export class HomeComponent implements OnInit {
     return courses.filter((course) => course.category === 'ADVANCED');
   });
 
-  courseService = inject(CoursesService);
-  messageService = inject(MessagesService);
-  dialog = inject(MatDialog);
+  beginnersList = viewChild('beginnersList', { read: ElementRef });
+  matTooltip = viewChild('addButton', { read: MatTooltip });
 
   constructor() {
     /*Todo verificar as opções:
       - afterNextRender
       - afterRender
     */
+
+    effect(() => {
+      console.log(`beginnerList: `, this.beginnersList());
+    });
+
+    effect(() => {
+      console.log(`matTooltip: `, this.matTooltip());
+    });
 
     effect(() => {
       console.log(`Beginner courses: `, this.beginnerCourses());
