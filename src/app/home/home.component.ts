@@ -17,7 +17,7 @@ import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 import { CoursesCardListComponent } from '../courses-card-list/courses-card-list.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MessagesService } from '../messages/messages.service';
-import { catchError, from, throwError } from 'rxjs';
+import { catchError, from, interval, startWith, throwError } from 'rxjs';
 import {
   toObservable,
   toSignal,
@@ -42,6 +42,7 @@ export class HomeComponent implements OnInit {
   courseService = inject(CoursesService);
   messageService = inject(MessagesService);
   dialog = inject(MatDialog);
+  injector = inject(Injector);
 
   #courses = signal<Course[]>([]);
 
@@ -67,16 +68,16 @@ export class HomeComponent implements OnInit {
     */
 
     effect(() => {
-      console.log(`beginnerList: `, this.beginnersList());
+      //console.log(`beginnerList: `, this.beginnersList());
     });
 
     effect(() => {
-      console.log(`matTooltip: `, this.matTooltip());
+      //console.log(`matTooltip: `, this.matTooltip());
     });
 
     effect(() => {
-      console.log(`Beginner courses: `, this.beginnerCourses());
-      console.log(`Advanced courses: `, this.advancedCourses());
+      //console.log(`Beginner courses: `, this.beginnerCourses());
+      //console.log(`Advanced courses: `, this.advancedCourses());
     });
   }
 
@@ -131,6 +132,80 @@ export class HomeComponent implements OnInit {
     } catch (error) {
       console.error(error);
       alert(`Error deleting course!`);
+    }
+  }
+
+  onToObservableExample(): void {
+    // Example 1 -- convert an signal to observable outside injection context.
+    // const courses$ = toObservable(this.#courses, { injector: this.injector }); // interoperability of signal to observable
+
+    // courses$.subscribe((courses) =>
+    //   console.log(`Observable courses: `, courses)
+    // );
+
+    // Example 2 -- Understand toObservable function because it internally uses an effect to track signal changes.
+    // It means that due Glitch Free effect will wait values "stabilize" to react a change, due this behavior you will only see in console log the last value.
+    const numbers = signal(0);
+    numbers.set(1);
+    numbers.set(2);
+    numbers.set(3);
+
+    const numbers$ = toObservable(numbers, { injector: this.injector });
+
+    numbers.set(4);
+    numbers$.subscribe((value) => console.log(`numbers$: `, value));
+    numbers.set(5);
+  }
+
+  onToSignalExample(): void {
+    // Example 1
+    // const courses$ = from(this.courseService.loadAllCourses());
+    // const courses = toSignal(courses$, { injector: this.injector });
+    // effect(
+    //   () => {
+    //     console.log(`coursesSignal: `, courses());
+    //   },
+    //   {
+    //     injector: this.injector,
+    //   }
+    // );
+    // Example 2 - requireSync forces the origin observable to emit an initial value, otherwise it will emit an error.
+    // const number$ = interval(1000).pipe(startWith(0));
+    // const numbers = toSignal(number$, {
+    //   injector: this.injector,
+    //   requireSync: true,
+    // });
+    // effect(
+    //   () => {
+    //     console.log(`Numbers: `, numbers());
+    //   },
+    //   {
+    //     injector: this.injector,
+    //   }
+    // );
+
+    // Example 3 - Error handling
+    try {
+      const courses$ = from(this.courseService.loadAllCourses()).pipe(
+        catchError((error) => {
+          console.log('Error caught in catchError', error);
+          throw error;
+        })
+      );
+      const courses = toSignal(courses$, {
+        injector: this.injector,
+        rejectErrors: true,
+      });
+      effect(
+        () => {
+          console.log(`coursesSignal: `, courses());
+        },
+        {
+          injector: this.injector,
+        }
+      );
+    } catch (error) {
+      console.log('Error in catch block: ', error);
     }
   }
 }
